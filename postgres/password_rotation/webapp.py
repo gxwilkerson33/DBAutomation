@@ -4,7 +4,6 @@
 
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
-import os
 from flask import Flask
 import psycopg2 as pg2
  
@@ -23,13 +22,10 @@ def hello_world():
 @app.route('/categories')
 def getAllCategories():
 
-    password = os.getenv("PGPASSWORD")
-    host = os.getenv("PGHOST")
-
     getCategoriesQuery = "select * from edbuser.categories;"
 
     connection = pg2.connect(
-        database="edbstore", user="webappuser", password=password, host=host, port=5444)
+        database="edbstore", user="webappuser", password="webappuser", host="54.144.132.79", port=5444)
 
     cursor = connection.cursor()
 
