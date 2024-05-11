@@ -17,7 +17,6 @@ app = Flask(__name__)
 # which tells the application which URL should call
 # the associated function.
 
-
 @app.route('/')
 # ‘/’ URL is bound with hello_world() function.
 def hello_world():
@@ -40,7 +39,7 @@ def getAllCategories():
 
 def getDBConnection():
     """connects to the database with current env vars and returns the cursor for use"""
-    load_dotenv("postgres/password_rotation/dbcreds.env")
+    load_dotenv("postgres/password_rotation/dbcreds.env",override=True)
     password = os.getenv("webapppassword")
     host = os.getenv("dbhost")
     user = os.getenv("webapp_user")

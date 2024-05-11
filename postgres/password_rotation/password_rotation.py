@@ -19,7 +19,8 @@ cursor = connection.cursor()
 
 def rotateAndUpdatePasswords():
     # all users that are not the superuser
-    getAllUsers = "select pg_user.usename from pg_catalog.pg_user where not pg_user.usename = 'enterprisedb' and not pg_user.usename = 'edbuser';"
+    getAllUsers = "select pg_user.usename from pg_catalog.pg_user \
+        where not pg_user.usename = 'enterprisedb';"
 
     cursor.execute(getAllUsers)
 
@@ -39,10 +40,14 @@ def rotateAndUpdatePasswords():
         newPass = alterUserQuery(usename)
         updateConfigForAppsUsingUser(tempUseName, usename, newPass)
         dropTempUser(tempUseName)
+        print(usename)
+        print(newPass)
 
 
 def alterUserQuery(usename: str):
-    """ alter user function """
+    """
+        The function generates a new secure password and alters the user with it. 
+    """
     newPassword = f"{''.join(secrets.choice(alphabet) for i in range(20))}"
     cursor.execute(f"alter user {usename} with password '{newPassword}'")
     connection.commit()
@@ -50,8 +55,11 @@ def alterUserQuery(usename: str):
 
 
 def createTempUser(usename):
-    """ create temp user function """
-    tempUserQuery = f"create user {usename}_temp with login password '{''.join(secrets.choice(alphabet) for i in range(20))}' in role {usename};"
+    """ The function creates a temp user from the original user with a new secure password.
+        returns: the temp username and password 
+    """
+    tempUserQuery = f"create user {usename}_temp with login password '{
+        ''.join(secrets.choice(alphabet) for i in range(20))}' in role {usename};"
     cursor.execute(tempUserQuery)
     connection.commit()
     return f"{usename}_temp", "temp_password"
@@ -72,7 +80,7 @@ def updateConfigForAppsUsingUser(current, new, password):
 
     # todo: write correct file to correct app to use
     f = open("postgres/password_rotation/dbcreds.env", "w")
-    f.write(f"webapppassword={password}\nwebappuser={new}\ndbhost=34.232.67.249")
+    f.write(f"webapppassword={password}\nwebapp_user={new}\ndbhost=34.232.67.249")
     f.close()
 
 
