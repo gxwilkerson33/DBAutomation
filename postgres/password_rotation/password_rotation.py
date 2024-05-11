@@ -6,6 +6,10 @@
 
 import psycopg2 as pg2
 import os
+import secrets
+import string
+alphabet = string.ascii_letters + string.digits
+
 
 connection = pg2.connect(database="edb", user="enterprisedb",
                          password="edb", host="34.232.67.249", port=5444)
@@ -14,12 +18,8 @@ cursor = connection.cursor()
 
 
 def rotateAndUpdatePasswords():
-    # db cluster superuser credentials
-    password = os.getenv("PGPASSWORD")
-    host = os.getenv("PGHOST")
-
     # all users that are not the superuser
-    getAllUsers = "select pg_user.usename from pg_catalog.pg_user where not pg_user.usename = 'enterprisedb';"
+    getAllUsers = "select pg_user.usename from pg_catalog.pg_user where not pg_user.usename = 'enterprisedb' and not pg_user.usename = 'edbuser';"
 
     cursor.execute(getAllUsers)
 
@@ -43,7 +43,7 @@ def rotateAndUpdatePasswords():
 
 def alterUserQuery(usename: str):
     """ alter user function """
-    newPassword = "newRandomPassword6"
+    newPassword = f"{''.join(secrets.choice(alphabet) for i in range(20))}"
     cursor.execute(f"alter user {usename} with password '{newPassword}'")
     connection.commit()
     return newPassword
@@ -51,7 +51,7 @@ def alterUserQuery(usename: str):
 
 def createTempUser(usename):
     """ create temp user function """
-    tempUserQuery = f"create user {usename}_temp with login password 'temp_password' in role {usename};"
+    tempUserQuery = f"create user {usename}_temp with login password '{''.join(secrets.choice(alphabet) for i in range(20))}' in role {usename};"
     cursor.execute(tempUserQuery)
     connection.commit()
     return f"{usename}_temp", "temp_password"
@@ -67,17 +67,18 @@ def updateConfigForAppsUsingUser(current, new, password):
         password: the new password to use
     """
 
-    # for now we will jsut update local env vars. In a real world scenario we will need to
-    # fetch info from cmdb to update all servers/apps with new credentials based on what current usename is passed in
+    # for now we will jsut update local env vars using dbcreds.env. In a real world scenario we will need to
+    # fetch info from cmdb? to update all servers/apps with new credentials based on what current usename is passed in
 
-    # todo: update some env vars for the web app to use
-
-    os.environ["webapppassword"] = password
-    os.environ["webappuser"] = new
+    # todo: write correct file to correct app to use
+    f = open("postgres/password_rotation/dbcreds.env", "w")
+    f.write(f"webapppassword={password}\nwebappuser={new}\ndbhost=34.232.67.249")
+    f.close()
 
 
 def dropTempUser(tempUseName):
     """ drop the temp user that was created for password rotation """
+
     dropUserQuery = f"drop user {tempUseName};"
     cursor.execute(dropUserQuery)
     connection.commit()
