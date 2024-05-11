@@ -7,6 +7,7 @@
 import os
 from flask import Flask
 import psycopg2 as pg2
+from dotenv import load_dotenv
 
 # Flask constructor takes the name of
 # current module (__name__) as argument.
@@ -39,9 +40,9 @@ def getAllCategories():
 
 def getDBConnection():
     """connects to the database with current env vars and returns the cursor for use"""
-
+    load_dotenv("postgres/password_rotation/dbcreds.env")
     password = os.getenv("webapppassword")
-    host = os.getenv("webapphost")
+    host = os.getenv("dbhost")
     user = os.getenv("webapp_user")
 
     print(f"{password}\n")
