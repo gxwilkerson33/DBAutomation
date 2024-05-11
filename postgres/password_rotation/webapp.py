@@ -33,6 +33,7 @@ def getAllCategories():
 
     cursor = connection.cursor()
 
+    cursor.execute(getCategoriesQuery)
     # Fetch all rows from database
     record = cursor.fetchall()
 
