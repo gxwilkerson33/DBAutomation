@@ -17,7 +17,7 @@ alphabet = string.ascii_letters + string.digits
 # creds for cmdb can be passed in command line args or fetched from another cred management solution.
 # This is dependant on what the org is already using and considers best practice
 connection = pg2.connect(database="edb", user="enterprisedb",
-                         password="edb", host="34.232.67.249", port=5444)
+                         password="edb", host="52.3.240.230", port=5444)
 
 # global cursor for the script
 cursor = connection.cursor()
@@ -43,9 +43,9 @@ def rotateAndUpdatePasswords():
     for i in allDbUsers:
         usename = i[0]
         tempUseName, tempPass = createTempUser(usename)
-        updateConfigForAppsUsingUser(usename, tempUseName, tempPass)
+        updateConfigForAppsUsingUser(tempUseName, tempPass)
         newPass = alterUserQuery(usename)
-        updateConfigForAppsUsingUser(tempUseName, usename, newPass)
+        updateConfigForAppsUsingUser(usename, newPass)
         dropTempUser(tempUseName)
         print(usename)
         print(newPass)
@@ -66,7 +66,7 @@ def updateConfigForAppsUsingUser(newUsername, password):
     # for now we will jsut update local env vars using dbcreds.env. In a real world scenario we will need to
     # fetch info from cmdb? to update all servers/apps with new credentials based on what current usename is passed in
     f = open("postgres/password_rotation/dbcreds.env", "w")
-    f.write(f"webapppassword={password}\nwebapp_user={newUsername}\ndbhost=34.232.67.249")
+    f.write(f"webapppassword={password}\nwebapp_user={newUsername}\ndbhost=52.3.240.230")
     f.close()
 
 
